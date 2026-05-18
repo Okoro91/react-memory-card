@@ -1,66 +1,77 @@
 import React from "react";
-import { shuffleArray } from "./utils/shuffleArray";
-import { saveToLocalStorage, getFromLocalStorage } from "./utils/localStorage";
-
-const cardsList = ["🐶", "🐱", "🐸", "🐵", "🦊"];
+import { useApiFetch } from "./hooks/useApiFetch";
+import { useGameLogic } from "./hooks/useGameLogic";
 
 const App = () => {
-  const [cards, setCards] = React.useState(cardsList);
-  const [name, setName] = React.useState("");
-  const [getUser, setGetUser] = React.useState(getFromLocalStorage("user", ""));
-  const [saveUser, getSaveUser] = React.useState(
-    saveToLocalStorage("user", name),
-  );
+  const { cards: fetchedCards, loading, error } = useApiFetch();
 
-  const handleSave = () => {
-    getSaveUser(saveToLocalStorage("user", name));
-    setGetUser(getFromLocalStorage("user", ""));
-    alert("Name saved to local storage!");
-  };
+  const {
+    cards,
+    score,
+    bestScore,
+    gameOver,
+    winMessage,
+    handleCardClick,
+    playAgain,
+  } = useGameLogic(fetchedCards);
 
-  const handleCardClick = () => {
-    setCards((prevCards) => shuffleArray(prevCards));
-  };
+  if (loading) {
+    return <h1 className="text-3xl p-5">Loading...</h1>;
+  }
+
+  if (error) {
+    return <h1 className="text-3xl p-5 text-red-500">{error}</h1>;
+  }
 
   return (
-    <>
-      <h1 className="text-3xl font-bold mb-4">localStorage Test</h1>
-      <input
-        type="text"
-        placeholder="Enter your name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="p-2 border border-gray-300 rounded mb-4"
-      />
-      <button
-        className="p-2 bg-blue-600 text-white rounded"
-        onClick={handleSave}
-      >
-        Save Name
-      </button>
-      <p>Saved Name: {getUser || "No name saved yet."}</p>
-      <p>Saved Name: {name}</p>
+    <div className="min-h-screen bg-gray-100 p-5">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-4xl font-bold">Pokémon Memory Game</h1>
 
-      <h1>Memory Card Game</h1>
-      <div>
-        {cards.map((card, index) => (
-          <span
-            onClick={() => handleCardClick()}
-            key={index}
-            className="text-4xl m-4 cursor-pointer transition-transform duration-300 hover:scale-110
-          "
-          >
-            {card}
-          </span>
-        ))}
+          <div className="text-lg font-semibold">
+            <p>Score: {score}</p>
+            <p>Best Score: {bestScore}</p>
+          </div>
+        </div>
+
+        {/* Game Over */}
+        {gameOver && (
+          <div className="bg-white p-4 rounded-lg shadow mb-6 text-center">
+            <h2 className="text-2xl font-bold mb-3">{winMessage}</h2>
+
+            <button
+              onClick={playAgain}
+              className="bg-blue-500 text-white px-5 py-2 rounded"
+            >
+              Play Again
+            </button>
+          </div>
+        )}
+
+        {/* Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+          {cards.map((card) => (
+            <div
+              key={card.id}
+              onClick={() => handleCardClick(card.id)}
+              className="bg-white rounded-xl shadow p-4 cursor-pointer hover:scale-105 transition"
+            >
+              <img
+                src={card.image}
+                alt={card.name}
+                className="w-full h-40 object-contain"
+              />
+
+              <h2 className="text-center mt-3 font-semibold capitalize">
+                {card.name}
+              </h2>
+            </div>
+          ))}
+        </div>
       </div>
-      <button
-        className="p-2 bg-red-600 m-6 text-white rounded"
-        onClick={() => handleCardClick()}
-      >
-        Shuffle Cards
-      </button>
-    </>
+    </div>
   );
 };
 
