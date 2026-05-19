@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const API_URL = "https://pokeapi.co/api/v2/pokemon?limit=20";
 const POKEMON_IMAGES =
@@ -8,8 +8,12 @@ export const useApiFetch = () => {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+
     const fetchPokemons = async () => {
       try {
         setLoading(true);

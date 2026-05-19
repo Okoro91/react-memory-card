@@ -1,90 +1,59 @@
-import React from "react";
+// components/Card/Card.jsx
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Sparkles, Gamepad2 } from "lucide-react";
 
-const Card = () => {
-  const [cards, setCards] = React.useState([]);
-  const [score, setScore] = React.useState(0);
-  const [bestScore, setBestscore] = React.useState(0);
-  const [clickedCards, setClickedCards] = React.useState([]);
-
-  React.useEffect(() => {
-    const fetchPokemon = async () => {
-      const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=20");
-
-      const data = await res.json();
-
-      const pokemonDetails = await Promise.all(
-        data.results.map(async (poke) => {
-          const res = await fetch(poke.url);
-          const pokeData = await res.json();
-
-          return {
-            id: pokeData.id,
-            name: pokeData.name,
-            image: pokeData.sprites.front_default,
-          };
-        }),
-      );
-
-      setCards(pokemonDetails);
-    };
-
-    fetchPokemon();
-  }, []);
-
-  // Shuffle WITHOUT mutating original array
-  const shuffleCards = (array) => {
-    const shuffled = [...array];
-
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-
-    return shuffled;
-  };
-
-  const handleCardClick = (id) => {
-    if (clickedCards.includes(id)) {
-      setScore(0);
-      setClickedCards([]);
-    } else {
-      const newScore = score + 1;
-
-      setScore(newScore);
-      setClickedCards([...clickedCards, id]);
-
-      if (newScore > bestScore) {
-        setBestscore(newScore);
-      }
-    }
-
-    // Update state with shuffled cards
-    setCards((prevCards) => shuffleCards(prevCards));
-  };
+const Card = ({ id, name, image, onClick, isDisabled }) => {
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-4xl font-bold text-center mb-4">Memory Card Game</h1>
-
-      <p className="text-xl font-semibold">Score: {score}</p>
-
-      <p className="text-lg">Best Score: {bestScore}</p>
-
-      <div className="flex flex-wrap justify-center gap-4">
-        {cards.map((card) => (
-          <div
-            key={card.id}
-            className="w-40 h-40 bg-gray-200 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition"
-            onClick={() => handleCardClick(card.id)}
-          >
-            <img src={card.image} alt={card.name} />
-
-            <p className="capitalize">{card.name}</p>
-          </div>
-        ))}
+    <motion.div
+      whileHover={{ scale: isDisabled ? 1 : 1.05 }}
+      whileTap={{ scale: isDisabled ? 1 : 0.95 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className={`
+        relative bg-white rounded-xl shadow-md overflow-hidden cursor-pointer
+        transition-all duration-200
+        ${!isDisabled && "hover:shadow-xl hover:shadow-purple-200"}
+        ${isDisabled && "opacity-50 cursor-not-allowed"}
+      `}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={() => !isDisabled && onClick(id)}
+    >
+      <div className="relative pb-[100%]">
+        <img
+          src={image}
+          alt={name}
+          className="absolute inset-0 w-full h-full object-contain p-4 bg-linear-to-br from-blue-50 to-purple-50"
+          loading="lazy"
+        />
       </div>
-    </div>
+
+      {/* Card overlay on hover */}
+      {isHovered && !isDisabled && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute inset-0 bg-linear-to-t from-purple-600/80 to-transparent flex items-end justify-center pb-4"
+        >
+          <span className="text-white font-bold text-sm md:text-base px-2 py-1 rounded-full bg-black/50 flex items-center gap-1">
+            <Gamepad2 className="w-3 h-3 md:w-4 md:h-4" />
+            Click to catch!
+          </span>
+        </motion.div>
+      )}
+
+      {/* Card name */}
+      <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/70 to-transparent p-3">
+        <p className="text-white text-sm md:text-base font-semibold text-center truncate flex items-center justify-center gap-1">
+          {name}
+          {!isDisabled && <Sparkles className="w-3 h-3 text-yellow-300" />}
+        </p>
+      </div>
+    </motion.div>
   );
 };
 

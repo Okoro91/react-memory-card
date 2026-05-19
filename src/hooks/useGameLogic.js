@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { shuffleArray } from "../utils/shuffleArray";
 import { saveToLocalStorage, getFromLocalStorage } from "../utils/localStorage";
 
@@ -13,10 +13,33 @@ export const useGameLogic = (initialCards) => {
   const [winMessage, setWinMessage] = useState("");
   const [isWin, setIsWin] = useState(false);
 
+  const isInitialized = useRef(false);
+  const prevInitialCardsLength = useRef(0);
+  const isUpdatingWin = useRef(false);
+
   useEffect(() => {
-    if (initialCards.length > 0) {
+    if (initialCards.length > 0 && !isInitialized.current) {
       const shuffledCards = shuffleArray(initialCards);
       setCards(shuffledCards);
+      setClickedCards(new Set());
+      setScore(0);
+      setGameOver(false);
+      setWinMessage("");
+      setIsWin(false);
+      isInitialized.current = true;
+    }
+
+    if (prevInitialCardsLength.current !== initialCards.length) {
+      prevInitialCardsLength.current = initialCards.length;
+      if (initialCards.length > 0) {
+        const shuffledCards = shuffleArray(initialCards);
+        setCards(shuffledCards);
+        setClickedCards(new Set());
+        setScore(0);
+        setGameOver(false);
+        setWinMessage("");
+        setIsWin(false);
+      }
     }
   }, [initialCards]);
 
@@ -27,21 +50,33 @@ export const useGameLogic = (initialCards) => {
   }, [bestScore]);
 
   useEffect(() => {
-    if (clickedCards.size === cards.length && cards.length > 0) {
+    if (
+      !isUpdatingWin.current &&
+      !gameOver &&
+      !isWin &&
+      cards.length > 0 &&
+      clickedCards.size === cards.length
+    ) {
+      isUpdatingWin.current = true;
       setIsWin(true);
-      setWinMessage("🎉 Amazing! You caught all Pokémon! 🎉");
+      setWinMessage(" Amazing! You caught all Pokémon! ");
       setGameOver(true);
+      setTimeout(() => {
+        isUpdatingWin.current = false;
+      }, 100);
     }
-  }, [clickedCards.size, cards.length]);
+  }, [clickedCards.size, cards.length, gameOver, isWin]);
 
   const resetGame = useCallback(() => {
-    const shuffledCards = shuffleArray(initialCards);
-    setCards(shuffledCards);
-    setScore(0);
-    setClickedCards(new Set());
-    setGameOver(false);
-    setWinMessage("");
-    setIsWin(false);
+    if (initialCards.length > 0) {
+      const shuffledCards = shuffleArray(initialCards);
+      setCards(shuffledCards);
+      setScore(0);
+      setClickedCards(new Set());
+      setGameOver(false);
+      setWinMessage("");
+      setIsWin(false);
+    }
   }, [initialCards]);
 
   const handleCardClick = useCallback(
