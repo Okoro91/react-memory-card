@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Confetti from "react-confetti";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -20,6 +20,17 @@ import { useGameLogic } from "./hooks/useGameLogic";
 import { getFromLocalStorage, saveToLocalStorage } from "./utils/localStorage";
 import "./index.css";
 
+const getCardsByDifficulty = (allCards, diff) => {
+  if (!allCards.length) return [];
+  const difficultySettings = {
+    easy: 6,
+    medium: 8,
+    hard: 16,
+  };
+  const count = difficultySettings[diff];
+  return allCards.slice(0, count);
+};
+
 function App() {
   const { cards: fetchedCards, loading, error } = useApiFetch();
   const [difficulty, setDifficulty] = useState(() =>
@@ -27,18 +38,9 @@ function App() {
   );
   const [showGameOverModal, setShowGameOverModal] = useState(false);
 
-  const getCardsByDifficulty = (allCards, diff) => {
-    if (!allCards.length) return [];
-    const difficultySettings = {
-      easy: 6,
-      medium: 8,
-      hard: 16,
-    };
-    const count = difficultySettings[diff];
-    return allCards.slice(0, count);
-  };
-
-  const currentCards = getCardsByDifficulty(fetchedCards, difficulty);
+  const currentCards = useMemo(() => {
+    return getCardsByDifficulty(fetchedCards, difficulty);
+  }, [fetchedCards, difficulty]);
 
   const {
     cards,
