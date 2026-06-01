@@ -133,6 +133,7 @@ const App = () => {
       {isWin && <Confetti recycle={false} numberOfPieces={900} gravity={0.2} />}
 
       <Header />
+      <SoundToggle isMuted={isMuted} toggleMute={toggleMute} />
 
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="flex justify-center mb-6">
