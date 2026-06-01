@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Confetti from "react-confetti";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -18,10 +18,13 @@ import GameBoard from "./components/GameBoard/GameBoard";
 import { useApiFetch } from "./hooks/useApiFetch";
 import { useGameLogic } from "./hooks/useGameLogic";
 import { getFromLocalStorage, saveToLocalStorage } from "./utils/localStorage";
+import { useSound } from "./hooks/useSound";
+import SoundToggle from "./components/SoundToggle/SoundToggle";
 import "./index.css";
 
-function App() {
+const App = () => {
   const { cards: fetchedCards, loading, error } = useApiFetch();
+  const { playSound, toggleMute, isMuted } = useSound();
   const [difficulty, setDifficulty] = useState(() =>
     getFromLocalStorage("difficulty", "medium"),
   );
@@ -47,10 +50,11 @@ function App() {
     gameOver,
     winMessage,
     isWin,
+    combo,
     handleCardClick,
     playAgain,
     loading: gameLoading,
-  } = useGameLogic(currentCards);
+  } = useGameLogic(currentCards, playSound);
 
   useEffect(() => {
     saveToLocalStorage("difficulty", difficulty);
@@ -81,6 +85,7 @@ function App() {
     return (
       <div className="min-h-screen bg-linear-to-br from-blue-100 to-purple-100">
         <Header />
+        <SoundToggle isMuted={isMuted} toggleMute={toggleMute} />
         <div className="container mx-auto px-4 py-12">
           <div className="flex flex-col items-center justify-center min-h-[60vh]">
             <div className="relative">
@@ -172,6 +177,7 @@ function App() {
           currentScore={score}
           bestScore={bestScore}
           totalCards={currentCards.length}
+          combo={combo}
         />
 
         <GameBoard
@@ -254,6 +260,6 @@ function App() {
       </footer>
     </div>
   );
-}
+};
 
 export default App;

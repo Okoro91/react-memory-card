@@ -7,9 +7,10 @@ import {
   Star,
   Award,
   Sparkles,
+  Zap,
 } from "lucide-react";
 
-const Scoreboard = ({ currentScore, bestScore, totalCards }) => {
+const Scoreboard = ({ currentScore, bestScore, totalCards, combo }) => {
   const progress = (currentScore / totalCards) * 100;
 
   return (
@@ -43,9 +44,23 @@ const Scoreboard = ({ currentScore, bestScore, totalCards }) => {
             </p>
           </div>
         </div>
-      </div>
 
-      {/* Progress bar with star indicator */}
+        <div className="flex items-center justify-center space-x-3 bg-linear-to-r from-orange-50 to-red-50 p-3 rounded-lg">
+          <Zap
+            className={`w-8 h-8 ${combo > 0 ? "text-orange-500 animate-pulse" : "text-gray-400"}`}
+          />
+          <div className="text-center">
+            <p className="text-sm text-gray-600 font-semibold">Combo</p>
+            <p
+              className={`text-3xl font-bold ${combo > 0 ? "text-orange-500" : "text-gray-400"}`}
+            >
+              {combo}x
+            </p>
+          </div>
+        </div>
+      </div>
+      {/* </div> */}
+
       <div className="mt-4 relative">
         <div className="bg-gray-200 rounded-full h-3 overflow-hidden">
           <div

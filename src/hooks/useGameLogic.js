@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { shuffleArray } from "../utils/shuffleArray";
 import { saveToLocalStorage, getFromLocalStorage } from "../utils/localStorage";
 
-export const useGameLogic = (initialCards) => {
+export const useGameLogic = (initialCards, playSound) => {
   const [cards, setCards] = useState([]);
   const [score, setScore] = useState(0);
   const [bestScore, setBestScore] = useState(() =>
@@ -12,6 +12,7 @@ export const useGameLogic = (initialCards) => {
   const [gameOver, setGameOver] = useState(false);
   const [winMessage, setWinMessage] = useState("");
   const [isWin, setIsWin] = useState(false);
+  const [combo, setCombo] = useState(0); // For combo feature later
 
   const isInitialized = useRef(false);
   const prevInitialCardsLength = useRef(0);
@@ -39,6 +40,8 @@ export const useGameLogic = (initialCards) => {
         setGameOver(false);
         setWinMessage("");
         setIsWin(false);
+        setCombo(0);
+        playSound?.("shuffle");
       }
     }
   }, [initialCards]);
@@ -61,6 +64,7 @@ export const useGameLogic = (initialCards) => {
       setIsWin(true);
       setWinMessage(" Amazing! You caught all Pokémon! ");
       setGameOver(true);
+      playSound?.("win");
       setTimeout(() => {
         isUpdatingWin.current = false;
       }, 100);
@@ -76,6 +80,8 @@ export const useGameLogic = (initialCards) => {
       setGameOver(false);
       setWinMessage("");
       setIsWin(false);
+      setCombo(0);
+      playSound?.("shuffle");
     }
   }, [initialCards]);
 
@@ -88,23 +94,30 @@ export const useGameLogic = (initialCards) => {
       if (clickedCards.has(cardId)) {
         setGameOver(true);
         setWinMessage(" Game Over! You clicked a Pokémon twice! ");
+        setCombo(0);
+        playSound?.("gameOver");
         return;
       }
 
       const newClickedCards = new Set(clickedCards);
       newClickedCards.add(cardId);
       const newScore = score + 1;
+      const newCombo = combo + 1;
 
       setClickedCards(newClickedCards);
       setScore(newScore);
+      setCombo(newCombo);
+      playSound?.("catch");
 
       if (newScore > bestScore) {
         setBestScore(newScore);
+        playSound?.("win");
       }
 
       setCards((currentCards) => shuffleArray(currentCards));
+      playSound?.("click");
     },
-    [clickedCards, score, bestScore, gameOver],
+    [clickedCards, score, bestScore, gameOver, combo, playSound],
   );
 
   const playAgain = useCallback(() => {
@@ -118,6 +131,7 @@ export const useGameLogic = (initialCards) => {
     gameOver,
     winMessage,
     isWin,
+    combo,
     handleCardClick,
     playAgain,
     loading: initialCards.length === 0,
