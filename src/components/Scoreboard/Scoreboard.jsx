@@ -1,4 +1,3 @@
-// components/Scoreboard/Scoreboard.jsx
 import React from "react";
 import {
   Trophy,
@@ -8,10 +7,12 @@ import {
   Award,
   Sparkles,
   Zap,
+  RefreshCw,
 } from "lucide-react";
 
 const Scoreboard = ({ currentScore, bestScore, totalCards, combo }) => {
   const progress = (currentScore / totalCards) * 100;
+  const [flipCount, setFlipCount] = React.useState(0);
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-4 mb-6">
@@ -59,7 +60,6 @@ const Scoreboard = ({ currentScore, bestScore, totalCards, combo }) => {
           </div>
         </div>
       </div>
-      {/* </div> */}
 
       <div className="mt-4 relative">
         <div className="bg-gray-200 rounded-full h-3 overflow-hidden">
@@ -73,6 +73,13 @@ const Scoreboard = ({ currentScore, bestScore, totalCards, combo }) => {
             <Star className="w-5 h-5 text-yellow-500 fill-yellow-500 animate-pulse" />
           </div>
         )}
+      </div>
+      <div className="flex items-center justify-center space-x-3 bg-gradient-to-r from-indigo-50 to-indigo-100 p-3 rounded-lg">
+        <RefreshCw className="w-8 h-8 text-indigo-600" />
+        <div className="text-center">
+          <p className="text-sm text-gray-600 font-semibold">Total Flips</p>
+          <p className="text-3xl font-bold text-indigo-600">{flipCount}</p>
+        </div>
       </div>
     </div>
   );

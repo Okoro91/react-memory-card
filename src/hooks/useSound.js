@@ -1,23 +1,28 @@
-import { useCallback, useRef, useState } from "react";
-
-const createAudio = (src, volume = 0.5) => {
-  const audio = new Audio(src);
-  audio.volume = volume;
-  return audio;
-};
+import { useCallback, useRef, useState, useEffect } from "react";
 
 export const useSound = () => {
   const [isMuted, setIsMuted] = useState(() => {
-    return localStorage.getItem("isMuted") === "true";
+    return localStorage.getItem("soundMuted") === "true";
   });
 
   const sounds = useRef({
-    click: createAudio("/sounds/click.mp3", 0.5),
-    catch: createAudio("/sounds/catch.wav", 0.5),
-    gameOver: createAudio("/sounds/gameover.mp3", 0.7),
-    win: createAudio("/sounds/win.wav", 0.7),
-    shuffle: createAudio("/sounds/shuffle.mp3", 0.5),
+    click: new Audio("/sounds/click.mp3"),
+    catch: new Audio("/sounds/catch.wav"),
+    gameOver: new Audio("/sounds/gameover.mp3"),
+    win: new Audio("/sounds/win.wav"),
+    shuffle: new Audio("/sounds/shuffle.mp3"),
+    flip: new Audio("/sounds/flip.wav"), // Add flip sound
   });
+
+  // Set volumes
+  useEffect(() => {
+    sounds.current.click.volume = 0.2;
+    sounds.current.catch.volume = 0.3;
+    sounds.current.gameOver.volume = 0.4;
+    sounds.current.win.volume = 0.5;
+    sounds.current.shuffle.volume = 0.2;
+    sounds.current.flip.volume = 0.15;
+  }, []);
 
   const playSound = useCallback(
     (soundName) => {
@@ -34,7 +39,7 @@ export const useSound = () => {
   const toggleMute = useCallback(() => {
     setIsMuted((prev) => {
       const newState = !prev;
-      localStorage.setItem("isMuted", newState);
+      localStorage.setItem("soundMuted", newState);
       return newState;
     });
   }, []);

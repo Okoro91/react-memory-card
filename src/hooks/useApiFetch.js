@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
-const API_URL = "https://pokeapi.co/api/v2/pokemon?limit=20";
+const API_URL = "https://pokeapi.co/api/v2/pokemon?limit=50";
 const POKEMON_IMAGES =
   "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/";
 

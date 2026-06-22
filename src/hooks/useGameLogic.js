@@ -99,6 +99,8 @@ export const useGameLogic = (initialCards, playSound) => {
         return;
       }
 
+      playSound?.("flip");
+
       const newClickedCards = new Set(clickedCards);
       newClickedCards.add(cardId);
       const newScore = score + 1;
@@ -107,6 +109,7 @@ export const useGameLogic = (initialCards, playSound) => {
       setClickedCards(newClickedCards);
       setScore(newScore);
       setCombo(newCombo);
+
       playSound?.("catch");
 
       if (newScore > bestScore) {
