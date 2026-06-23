@@ -11,10 +11,10 @@ export const useSound = () => {
     gameOver: new Audio("/sounds/gameover.mp3"),
     win: new Audio("/sounds/win.wav"),
     shuffle: new Audio("/sounds/shuffle.mp3"),
-    flip: new Audio("/sounds/flip.wav"), // Add flip sound
+    flip: new Audio("/sounds/flip.wav"),
+    pause: new Audio("/sounds/pause.wav"),
   });
 
-  // Set volumes
   useEffect(() => {
     sounds.current.click.volume = 0.2;
     sounds.current.catch.volume = 0.3;
@@ -22,6 +22,7 @@ export const useSound = () => {
     sounds.current.win.volume = 0.5;
     sounds.current.shuffle.volume = 0.2;
     sounds.current.flip.volume = 0.15;
+    sounds.current.pause.volume = 0.15;
   }, []);
 
   const playSound = useCallback(

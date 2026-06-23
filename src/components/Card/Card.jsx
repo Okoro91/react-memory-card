@@ -22,7 +22,6 @@ const Card = ({ id, name, image, onClick, isDisabled, isFlipped = false }) => {
 
   return (
     <>
-      {/* Particle effect */}
       {showParticles && (
         <div className="fixed pointer-events-none z-50">
           {[...Array(12)].map((_, i) => (
@@ -86,21 +85,20 @@ const Card = ({ id, name, image, onClick, isDisabled, isFlipped = false }) => {
               <img
                 src={image}
                 alt={name}
-                className="absolute inset-0 w-full h-full object-contain p-4 bg-gradient-to-br from-blue-50 to-purple-50"
+                className="absolute inset-0 w-full h-full object-contain p-4 bg-linear-to-br from-blue-50 to-purple-50"
                 loading="lazy"
               />
             </div>
 
-            {/* Card overlay on hover */}
             {isHovered && !isDisabled && !isAnimating && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="absolute inset-0 bg-gradient-to-t from-purple-600/80 to-transparent flex items-end justify-center pb-4"
+                className="absolute inset-0 bg-linear-to-t from-purple-600/80 to-transparent flex items-end justify-center pb-1"
               >
-                <span className="text-white font-bold text-sm md:text-base px-2 py-1 rounded-full bg-black/50 flex items-center gap-1">
+                <span className="text-white font-semibold text-sm md:text-base px-2 py-0.5 rounded-full bg-black/50 flex items-center gap-1">
                   <Gamepad2 className="w-3 h-3 md:w-4 md:h-4" />
-                  Click to catch!
+                  Click
                 </span>
               </motion.div>
             )}
@@ -115,7 +113,6 @@ const Card = ({ id, name, image, onClick, isDisabled, isFlipped = false }) => {
             </div>
           </div>
 
-          {/* Back of card (Pokeball design) */}
           <div
             className="absolute top-0 left-0 w-full h-full rounded-xl overflow-hidden backface-hidden"
             style={{
@@ -125,7 +122,6 @@ const Card = ({ id, name, image, onClick, isDisabled, isFlipped = false }) => {
             }}
           >
             <div className="relative w-full h-full bg-linear-to-br from-red-500 to-red-600">
-              {/* Pokeball design */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-3/4 h-3/4 rounded-full bg-white shadow-lg">
                   <div className="absolute top-1/2 left-0 right-0 h-1/3 bg-gray-800"></div>

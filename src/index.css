@@ -108,3 +108,49 @@
     min-height: 100vh;
   }
 }
+
+@keyframes timerWarning {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.timer-warning {
+  animation: timerWarning 0.5s ease-in-out infinite;
+}
+
+@keyframes comboFlash {
+  0%,
+  100% {
+    transform: scale(1);
+    color: #f97316;
+  }
+  50% {
+    transform: scale(1.2);
+    color: #ef4444;
+  }
+}
+
+.combo-flash {
+  animation: comboFlash 0.3s ease-in-out 3;
+}
+
+@keyframes cardGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(139, 92, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
+  }
+}
+
+.card-glow {
+  animation: cardGlow 0.6s ease-out;
+}
