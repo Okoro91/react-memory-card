@@ -6,41 +6,49 @@ import {
   Play,
   AlertCircle,
   Loader2,
-  ChevronRight,
-  Zap,
   Crown,
   Heart,
   XCircle,
+  Zap,
+  Dice5,
 } from "lucide-react";
-import Header from "./components/Hearder/Header";
+import Header from "./components/Header/Header";
 import Scoreboard from "./components/Scoreboard/Scoreboard";
 import GameBoard from "./components/GameBoard/GameBoard";
+import SoundToggle from "./components/SoundToggle/SoundToggle";
+import NewCardsButton from "./components/CardDeck/NewCardsButton";
+import TimerControls from "./components/TimerControls/TimerControls";
 import { useApiFetch } from "./hooks/useApiFetch";
 import { useGameLogic } from "./hooks/useGameLogic";
+import { useSound } from "./hooks/useSound";
 import { getFromLocalStorage, saveToLocalStorage } from "./utils/localStorage";
 import "./index.css";
 
-const getCardsByDifficulty = (allCards, diff) => {
-  if (!allCards.length) return [];
-  const difficultySettings = {
-    easy: 6,
-    medium: 8,
-    hard: 16,
-  };
-  const count = difficultySettings[diff];
-  return allCards.slice(0, count);
-};
-
 function App() {
-  const { cards: fetchedCards, loading, error } = useApiFetch();
+  const { cards: fetchedCards, loading, error, refreshCards } = useApiFetch();
+  const { playSound, toggleMute, isMuted } = useSound();
   const [difficulty, setDifficulty] = useState(() =>
     getFromLocalStorage("difficulty", "medium"),
   );
   const [showGameOverModal, setShowGameOverModal] = useState(false);
+  const [gameStats, setGameStats] = useState(null);
 
-  const currentCards = useMemo(() => {
-    return getCardsByDifficulty(fetchedCards, difficulty);
-  }, [fetchedCards, difficulty]);
+  const getCardsByDifficulty = (allCards, diff) => {
+    if (!allCards.length) return [];
+    const difficultySettings = {
+      easy: 6,
+      medium: 12,
+      hard: 16,
+    };
+    const count = difficultySettings[diff];
+    return allCards.slice(0, count);
+  };
+
+  const currentCards = getCardsByDifficulty(fetchedCards, difficulty);
+
+  const handleGameComplete = (stats) => {
+    setGameStats(stats);
+  };
 
   const {
     cards,
@@ -49,10 +57,18 @@ function App() {
     gameOver,
     winMessage,
     isWin,
+    combo,
+    maxCombo,
+    timeLeft,
+    formatTime,
+    isTimerActive,
+    isPaused,
     handleCardClick,
     playAgain,
     loading: gameLoading,
-  } = useGameLogic(currentCards);
+    resetGame,
+    togglePause,
+  } = useGameLogic(currentCards, playSound, handleGameComplete);
 
   useEffect(() => {
     saveToLocalStorage("difficulty", difficulty);
@@ -63,7 +79,6 @@ function App() {
       setShowGameOverModal(true);
       // const timer = setTimeout(() => {
       //   setShowGameOverModal(false);
-      //   playAgain();
       // }, 5000);
       // return () => clearTimeout(timer);
     }
@@ -71,12 +86,18 @@ function App() {
 
   const handleDifficultyChange = (newDifficulty) => {
     setDifficulty(newDifficulty);
-    playAgain();
+    resetGame();
   };
 
   const handlePlayAgain = () => {
     setShowGameOverModal(false);
     playAgain();
+  };
+
+  const handleRefreshCards = () => {
+    setShowGameOverModal(false);
+    refreshCards();
+    resetGame();
   };
 
   if (loading || gameLoading) {
@@ -127,13 +148,14 @@ function App() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-100 via-purple-50 to-pink-100 custom-scrollbar">
-      {isWin && <Confetti recycle={false} numberOfPieces={900} gravity={0.2} />}
+      {isWin && <Confetti recycle={false} numberOfPieces={500} gravity={0.2} />}
 
       <Header />
+      <SoundToggle isMuted={isMuted} toggleMute={toggleMute} />
 
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
-        <div className="flex justify-center mb-6">
-          <div className="bg-white rounded-lg shadow-md p-2 inline-flex gap-2">
+      <div className="container mx-auto px-4 py-4 max-w-7xl">
+        <div className="flex flex-wrap items-center md:justify-between gap-2 justify-center mb-6">
+          <div className="flex gap-2 bg-white rounded-lg shadow-md p-2">
             {[
               {
                 level: "easy",
@@ -155,10 +177,10 @@ function App() {
                 key={level}
                 onClick={() => handleDifficultyChange(level)}
                 className={`
-                  px-6 py-2 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2
+                  px-4 py-2 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 text-sm
                   ${
                     difficulty === level
-                      ? "bg-linear-to-r from-blue-500 to-purple-600 text-white shadow-md transform scale-105"
+                      ? "bg-linear-to-r from-blue-500 to-purple-600 text-white shadow-md scale-105"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }
                 `}
@@ -168,18 +190,44 @@ function App() {
               </button>
             ))}
           </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <TimerControls
+              isPaused={isPaused}
+              togglePause={togglePause}
+              isTimerActive={isTimerActive}
+              gameOver={gameOver}
+              timeLeft={timeLeft}
+              formatTime={formatTime}
+              isLoading={loading || gameLoading}
+            />
+
+            <NewCardsButton
+              onRefresh={handleRefreshCards}
+              isLoading={loading || gameLoading}
+              disabled={gameOver && !isWin}
+            />
+          </div>
         </div>
 
         <Scoreboard
           currentScore={score}
           bestScore={bestScore}
           totalCards={currentCards.length}
+          combo={combo}
+          maxCombo={maxCombo}
+          timeLeft={timeLeft}
+          formatTime={formatTime}
+          isTimerActive={isTimerActive}
+          isPaused={isPaused}
+          gameOver={gameOver}
         />
 
         <GameBoard
           cards={cards}
           onCardClick={handleCardClick}
           gameOver={gameOver}
+          isPaused={isPaused}
         />
 
         <AnimatePresence>
@@ -206,29 +254,53 @@ function App() {
                   )}
                 </div>
                 <h2 className="text-3xl font-bold mb-2">
-                  {isWin ? "You Won!" : "Game Over!"}
+                  {isWin ? "🎉 You Won! 🎉" : "Game Over!"}
                 </h2>
-                <p className="text-gray-600 mb-4 flex items-center justify-center gap-2">
-                  <ChevronRight className="w-4 h-4" />
+                <p className="text-gray-600 mb-4 whitespace-pre-line">
                   {winMessage}
                 </p>
-                <div className="mb-6">
-                  <p className="text-sm text-gray-500">Your Score</p>
-                  <p className="text-4xl font-bold text-purple-600">{score}</p>
-                  {score === bestScore && score > 0 && (
-                    <p className="text-green-600 mt-1 flex items-center justify-center gap-1">
-                      <Crown className="w-4 h-4" />
-                      New Record!
-                    </p>
-                  )}
+
+                {gameStats && (
+                  <div className="grid grid-cols-3 gap-2 mb-6 bg-gray-50 rounded-lg p-4">
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500">Score</p>
+                      <p className="text-xl font-bold text-purple-600">
+                        {gameStats.finalScore}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500">Max Combo</p>
+                      <p className="text-xl font-bold text-orange-500">
+                        {gameStats.maxCombo}x
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500">Bonus</p>
+                      <p className="text-xl font-bold text-green-500">
+                        +
+                        {(gameStats.timeBonus || 0) +
+                          (gameStats.comboBonus || 0)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={handlePlayAgain}
+                    className="bg-linear-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
+                  >
+                    <Play className="w-4 h-4" />
+                    Play Again
+                  </button>
+                  <button
+                    onClick={handleRefreshCards}
+                    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-200 flex items-center gap-2"
+                  >
+                    <Dice5 className="w-4 h-4" />
+                    New Cards
+                  </button>
                 </div>
-                <button
-                  onClick={handlePlayAgain}
-                  className="bg-linear-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 mx-auto"
-                >
-                  <Play className="w-5 h-5" />
-                  Play Again
-                </button>
               </motion.div>
             </motion.div>
           )}
@@ -246,12 +318,32 @@ function App() {
           <RefreshCw className="w-6 h-6" />
         </motion.button>
       </div>
+      <p className=" text-center text-xs text-gray-400 mt-1">
+        {isPaused
+          ? "⏸️ Game Paused - Resume to continue"
+          : "▶️ Click cards to catch Pokémon"}
+      </p>
 
-      <footer className="mt-12 py-6 text-center text-gray-600 border-t border-gray-200">
+      <footer className="mt-12 py-4 text-center text-gray-600 border-t border-gray-200">
         <p className="text-sm flex items-center justify-center gap-2">
           <Heart className="w-4 h-4 text-red-500" />
-          Memory Card Game | Test your memory and catch all Pokémon!
+          Memory Card Game | Time Challenge | Combo System
           <Heart className="w-4 h-4 text-red-500" />
+        </p>
+        <p className="text-xs text-gray-400 mt-1">
+          Click each Pokémon only once | Timer: 60s | Combo multiplier for
+          consecutive catches
+        </p>
+        <p className="text-xs text-gray-400 mt-1">
+          Made by{" "}
+          <a
+            href="https://github.com/Okoro91"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            mi okoro
+          </a>
         </p>
       </footer>
     </div>
